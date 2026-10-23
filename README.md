@@ -1,121 +1,106 @@
-# Compositor
+# Compositor 简体中文版
 
-Adobe Photoshop costs too much and tools like GIMP don’t feel familiar enough for me to stay in flow. That’s why I built Compositor.
+> 非官方简体中文构建，基于 [robbietilton/Compositor](https://github.com/robbietilton/Compositor) 1.5.6。
+> 个人自用版本：使用 ad-hoc 签名，未公证，未使用 Developer ID。请勿把它当成官方发布。
 
-The goal was to create a full-featured image editor that is completely free and open source. I used to use Photoshop for compositing and post-processing, so Compositor is built around that workflow - with the tools needed to create a pixel-perfect final image.
+Compositor 是一款免费开源的 macOS 图像编辑器，定位为 Photoshop 的替代品。本仓库在上游 1.5.6 的基础上加入完整的简体中文本地化，并在窗口右上角提供语言切换按钮。
 
-Because it’s open source, you can download the Xcode project and add, remove, or modify any feature to fit your workflow.
+![Compositor 简体中文版](docs/zh-Hans.png)
 
-## Installation
+## 这个版本有什么
 
-### Download
-Get Compositor from [robbietilton.com/compositor](https://robbietilton.com/compositor), or download the latest release directly from [GitHub Releases](https://github.com/robbietilton/Compositor/releases/latest).
+- **简体中文界面**：菜单、工具、图层面板、Camera Raw、导出为、快捷键、命令面板、弹窗、PSD/PDF 导入报告等均已本地化。
+- **自动识别系统语言**：默认跟随 macOS 的语言设置。中文系统打开就是中文，英文系统打开就是英文；其他语言回退英文。
+- **窗口内语言按钮**：右上角「语言」按钮（地球图标），可在「跟随系统 / 简体中文 / English」之间切换，点「重新启动 Compositor」生效。
+- **保留英文模式**：切回 English 后菜单和界面与上游一致，方便对照教程。
+- **不改用户数据**：`.comp` 项目、快捷键、混合模式和枚举的持久化值保持原样；界面显示层单独本地化。
 
-### Homebrew
+## 系统要求
 
-```sh
-brew install --cask robbietilton-compositor
+- macOS 26.0 或更高
+- Apple Silicon（当前构建为 arm64）
+- 从源码构建需要 Xcode 26 或更高
+
+## 安装（DMG）
+
+1. 打开 [Releases](https://github.com/runlinxin-arch/Compositor-chinesebag/releases/latest)，下载 `Compositor-1.5.6-zh-Hans-arm64.dmg`。
+2. 打开 DMG，把 `Compositor.app` 拖到「应用程序」。
+3. 首次打开如果提示“无法验证开发者”，在 Finder 里右键 `Compositor` → **打开**。
+
+如果系统提示“已损坏”，移除下载隔离标记后再打开：
+
+```bash
+xattr -dr com.apple.quarantine /Applications/Compositor.app
 ```
 
-## Features
+> 这个包没有 Developer ID 签名，也没有公证。它适合自己用；如果要公开分发给别人，请自己完成签名和公证。
 
-### Layers
-- Layers and folders, with opacity and Photoshop's full set of blend modes in its order — a folder's opacity dims everything inside it
-- Layer masks: paint, fill, invert, blur and feather them anywhere on the canvas, past the layer's own pixels; link or unlink them to transform a mask on its own
-- Clipping masks and folder masks
-- Adjustment layers: Hue/Saturation, Levels, Curves, Exposure, Gradient Map, Grain, Black & White, Color Balance, Invert, and filter layers: Gaussian Blur, Motion Blur, Progressive Blur, Noise, Bloom / Glow and RGB Split
-- Layer effects: Stroke, Drop Shadow, Color Overlay, Inner Shadow, Outer Glow and Inner Glow, rendered on the GPU and editable at any time
-- Merge Down, Merge Layers and Merge Group (⌘E)
-- Duplicate, rename inline, reorder and nest by drag and drop; Option-drag to duplicate; a right-click menu in the Layers panel
-- Copy and paste whole layers and folders (⌘C/⌘V with no selection), within a project or between projects, or drag them between projects
+## 从源码构建
 
-### Transform
-- Non-destructive move, scale, rotate and flip — images keep their full resolution however small you make them
-- Free distort (⌘-drag a handle), with Shift to lock to an axis
-- Transform several layers, or a whole folder, together
-- Snapping to canvas and layer edges and centers, with guides
-- Exact values for position, size, scale and angle, stepped with the arrow keys
-- Flip Layer and Flip Canvas, horizontal and vertical
+1. 克隆仓库，用 Xcode 打开 `Compositor.xcodeproj`。
+2. 选择 **Compositor** scheme，按 `⌘R`。
+3. 如果没有开发者账号，Xcode 的 Signing 选择 **Sign to Run Locally**；也可以用命令行生成一个本地 ad-hoc Release：
 
-### Selections
-- Rectangle and Ellipse Marquee, Freehand and Polygonal Lasso, and the Magic tool — Wand selects by color, Object traces whatever you click (Tab switches)
-- Select Subject, and Expand, Contract and Feather on any selection
-- Add to and subtract from selections, move the outline, or move and duplicate the pixels inside
-- Load a layer's pixels or a mask as a selection
-- Content-Aware Fill, which can also extend an image past its edges
+```bash
+xcodebuild -project Compositor.xcodeproj -scheme Compositor \
+  -configuration Release \
+  -destination 'platform=macOS,arch=arm64' \
+  -derivedDataPath build \
+  CODE_SIGN_STYLE=Manual CODE_SIGN_IDENTITY="-" DEVELOPMENT_TEAM="" \
+  PROVISIONING_PROFILE_SPECIFIER="" \
+  build
+```
 
-### Painting and retouching
-- Brush with size, hardness, opacity and smoothing, in Paint or Erase mode (B and E), and Shift for straight lines
-- Pen pressure for the Brush's size and opacity, on a graphics tablet
-- Spot Healing Brush (content-aware)
-- Clone Stamp, aligned or not, sampling one layer or all of them
-- Blur tool, on pixels or masks
-- Gradient tool and Shape tool (rectangles, rounded rectangles, ellipses and lines), which stay editable rather than being rasterized
-- Type tool (T): inline multiline editing in draggable, resizable paragraph boxes; font, size, color, alignment and spacing in the tool header; transform text and use it as a clipping mask
-- Eyedropper and a full color picker
+产物在：
 
-### Adjustments and filters
-- Camera Raw filter: light, color, curves, color mixer, color grading, detail, optics and geometry, in a panel beside the canvas; each section resets to its defaults from its header
-- Levels (with Auto), Curves, Hue/Saturation, Exposure, Gradient Map, Grain, Black & White, Color Balance and Invert
-- Gaussian Blur and Motion Blur that spread past a layer's edges
-- Add Noise, Vignette, Bloom / Glow, Dither, Scanlines, RGB Split, Tonal Contrast, Lens Correction and Remove Background
-- Live previews, limited to the selection when there is one
-- Last Filter (⌃⌘F) runs the last filter again with the same settings
+```text
+build/Build/Products/Release/Compositor.app
+```
 
-### Canvas and files
-- Multiple projects in tabs
-- Search Commands (⌘F): find every menu command and tool by name, as in Raycast or Obsidian, and run it with Return
-- Toggle Fullscreen (F): the canvas alone on black over the whole screen, with every panel put away; F or Esc brings them back
-- Rulers (⌘R), guides dragged from them, a layout grid with adjustable spacing and subdivisions, and Snap To for guides, grid, layers and document bounds
-- Crop with snapping, ratios including 3:4 and 9:16, and Option for symmetric cropping; with a selection, the crop starts at it
-- Canvas Size, Image Size and Trim
-- The tool bar moves into two columns when the window is too short for one
-- A Navigator minimap in the canvas's corner from 300% zoom: the whole document in small with a box around the view; click or drag to move there (View › Navigator)
-- Sharp high-quality downsampling when zoomed out, and a pixel grid when zoomed in
-- Import JPEG, PNG, HEIC, TIFF, WebP, SVG, PDF (every page its own layer, at 300 DPI or fitted to the canvas), animated GIF (one layer whose frames show in a strip under the canvas, to play, paint on, duplicate, delete and retime), camera RAW (with a develop step first) and Photoshop PSD and PSB (8-bit RGB; not CMYK). Each Photoshop artboard opens in a tab of its own; folders, masks, blend modes, fill rectangles/ellipses, and simple horizontal text stay editable; other vectors and vertical text become pixels. A conversion report is shown before anything is applied.
-- Large documents: the memory budget scales with your Mac, and a Photoshop file too big to open has its layers cropped to the canvas instead
-- Export PNG (⇧⌘E), Export JPEG (⇧⌥⌘S), and Export As (⇧⌥⌘W) for PNG, JPEG, a one-page PDF at the print size or, with a GIF layer, an animated GIF, scaled if you like, with a live preview, JPEG quality and file size; Channel Pack in Export As packs layers into a PNG's red, green, blue and alpha for game textures, and RGB Split's Split to Layers turns a layer back into those four; Copy Merged
-- Keep working while a project saves
-- Photoshop-style keyboard shortcuts throughout, remappable in Edit > Keyboard Shortcuts
-- Drag a number's label to scrub its value, as in Photoshop
-- Automatic updates, signed and notarized
+## 切换语言
 
-### Works with AI agents
-- AI agents and scripts can build and edit projects directly: a `.comp` is a folder of PNG layers and a manifest, and an open project updates live as it's written. See [Writing Compositor projects](docs/writing-comp-files.md)
+- 点窗口右上角的「语言」按钮（地球图标）。
+- 选择：
+  - **跟随系统 · 简体中文**：移除应用级语言覆盖，交给 macOS 决定。
+  - **简体中文**：固定中文，不再跟随系统。
+  - **English**：固定英文。
+- 选完后点 **「重新启动 Compositor」**。如果自动重开被系统拦下，手动打开 app 也会按新语言启动。
+- 也可以使用菜单 `Compositor > 设置…`（`⌘,`），内容和语言按钮相同。
 
-## Requirements
+![语言按钮位置](docs/language-button.png)
 
-- macOS 26.0 or later on a Mac with Apple silicon
-- Xcode 26 or later (to build from source)
+## 与上游的差异
 
-## Translations
+这个 fork 只做中文和本地构建相关的改动：
 
-Compositor is English only for now, and translation pull requests aren't being accepted. It's maintained by one person, every new string would need translating from then on, and translations in languages I don't read can't be reviewed. I'll revisit this once the app settles; until then, please don't open localization PRs.
+- 新增 `Compositor/Localizable.xcstrings`，`zh-Hans` 共 1196 条键；`scripts/check-localization.py` 审计 0 问题。
+- 新增窗口工具栏语言按钮；`AppLanguage` 从系统全局域读取当前语言，用于显示“跟随系统”的实际语言。
+- Run scheme 不再强制 `-AppleLanguages (en)`；测试仍强制英文，保证测试稳定。
+- 关闭 Sparkle 自动检查，并移除“检查更新”菜单，避免上游英文版覆盖中文构建。
+- 为 ad-hoc 签名加入 `disable-library-validation`，让应用能加载上游签名的 `Sparkle.framework`。
+- 补上 `Transform` / `Transform Mask` 两个动态 `L()` 调用的漏翻。
 
-## Other platforms
+上游的完整功能列表见 [上游 README](https://github.com/robbietilton/Compositor#readme)。
 
-Compositor is macOS only. These unofficial ports are made by others, not reviewed or supported by me, so please report issues to them:
+## 已知限制
 
-- [CompositorWindows](https://github.com/Cengokill/CompositorWindows) by [@Cengokill](https://github.com/Cengokill): Windows
-- [Composa](https://github.com/dvdstelt/Composa) by [@dvdstelt](https://github.com/dvdstelt): Windows and Linux
-- [CompositorLX](https://github.com/ClaudiuJitea/compositorLX) by [@ClaudiuJitea](https://github.com/ClaudiuJitea): Linux
+- **未签名/未公证**：只建议本机使用；公开分发前请用 Developer ID 签名并公证。
+- **仅 arm64 + macOS 26+**：Intel Mac 和更早的 macOS 用不了当前构建。
+- **自动更新已关闭**：上游更新需要手动合并、重新构建。
+- **Finder 文档类型名仍是英文**：这是上游在 `Info.plist` 里定义的类型名，`InfoPlist.strings` 无法选择性本地化。
+- **系统菜单把 View 显示为“显示”**：这是 macOS 标准菜单的翻译，Photoshop 中文版用的是“视图”；改名需要替换系统菜单。
+- **尚未逐屏 QA**：Camera Raw、导出为、快捷键、命令面板、PSD/PDF 报告等主要界面已覆盖，但仍可能有截断或个别英文残留，欢迎提 Issue。
 
-More are listed in [#23 (Windows)](https://github.com/robbietilton/Compositor/issues/23) and [#19 (Linux)](https://github.com/robbietilton/Compositor/issues/19).
+## 汉化进度
 
-## Building
+- String Catalog：1196 条
+- 审计：0 个问题
+- 18 条“与英文相同”警告：都是符号、单位或技术词（`Camera Raw…`、`CMYK`、`Esc`、`X`、`Y`、`%` 等）
 
-Open `Compositor.xcodeproj` and run the **Compositor** scheme.
+## 许可证与致谢
 
-## Releasing
+本项目基于 [robbietilton/Compositor](https://github.com/robbietilton/Compositor)，原项目使用 MIT 许可证，版权归原作者所有；本仓库是非官方中文分支，不代表上游。
 
-`scripts/release.sh` builds a Release version, signs it with Developer ID, notarizes and staples it, and packages it into `dist/Compositor-<version>.dmg`.
-
-It needs, all kept outside this repository:
-
-- a **Developer ID Application** certificate in the login keychain
-- notarization credentials saved with `xcrun notarytool store-credentials "compositor-notary" …`
-- [`create-dmg`](https://github.com/create-dmg/create-dmg) (`brew install create-dmg`)
-
-## License
-
-MIT — see [LICENSE](LICENSE).
+- [上游项目](https://github.com/robbietilton/Compositor)
+- [上游 Releases](https://github.com/robbietilton/Compositor/releases)
+- [LICENSE](LICENSE)
