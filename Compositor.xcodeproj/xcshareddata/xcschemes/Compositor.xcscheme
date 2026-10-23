@@ -96,16 +96,7 @@
             ReferencedContainer = "container:Compositor.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
-      <CommandLineArguments>
-         <CommandLineArgument
-            argument = "-AppleLanguages"
-            isEnabled = "YES">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "(en)"
-            isEnabled = "YES">
-         </CommandLineArgument>
-      </CommandLineArguments>
+      <!-- Run follows the app's language preference; only the Test action forces English. -->
    </LaunchAction>
    <ProfileAction
       buildConfiguration = "Release"
