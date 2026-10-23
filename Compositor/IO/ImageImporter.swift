@@ -64,11 +64,11 @@ nonisolated enum ImageImportError: LocalizedError {
     case unreadable, unsupported, tooLarge, tooManyFrames, locked
     var errorDescription: String? {
         switch self {
-        case .unreadable: "The image could not be read. It may be damaged or unavailable."
-        case .unsupported: "Choose a JPEG, PNG, GIF, HEIC, HEIF, TIFF, WebP, PDF, or Photoshop (PSD) file."
-        case .locked: "This PDF is password-protected. Save an unlocked copy, then import that."
-        case .tooLarge: "This import exceeds the current \(DocumentLimits.documentBudgetMegapixels)-megapixel document budget or \(DocumentLimits.maxSide.formatted())-pixel side limit."
-        case .tooManyFrames: "This animation has more than \(GIFTimelineLimits.maxFrames.formatted()) frames, which exceeds the current timeline limit."
+        case .unreadable: String(localized: "The image could not be read. It may be damaged or unavailable.")
+        case .unsupported: String(localized: "Choose a JPEG, PNG, GIF, HEIC, HEIF, TIFF, WebP, PDF, or Photoshop (PSD) file.")
+        case .locked: String(localized: "This PDF is password-protected. Save an unlocked copy, then import that.")
+        case .tooLarge: String(localized: "This import exceeds the current \(DocumentLimits.documentBudgetMegapixels)-megapixel document budget or \(DocumentLimits.maxSide.formatted())-pixel side limit.")
+        case .tooManyFrames: String(localized: "This animation has more than \(GIFTimelineLimits.maxFrames.formatted()) frames, which exceeds the current timeline limit.")
         }
     }
 }
@@ -137,7 +137,7 @@ actor ImageImporter {
             context.drawPDFPage(page)
             guard let image = context.makeImage() else { throw ImageImportError.unreadable }
             return ImportedImage(image: image, thumbnail: try PixelAdjust.thumbnail(of: image),
-                                 name: document.numberOfPages == 1 ? name : "Page \(number)")
+                                 name: document.numberOfPages == 1 ? name : String(localized: "Page \(number)"))
         }
     }
 

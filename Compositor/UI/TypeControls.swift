@@ -63,8 +63,8 @@ struct TypeControls: View {
                                     .contentShape(RoundedRectangle(cornerRadius: 4))
                             }
                             .buttonStyle(.plain)
-                            .help("Align " + alignment.rawValue.lowercased())
-                            .accessibilityLabel("Align " + alignment.rawValue.lowercased())
+                            .help(alignment.localizedHelp)
+                            .accessibilityLabel(alignment.localizedHelp)
                             .accessibilityAddTraits(selected ? .isSelected : [])
                         }
                     }
@@ -285,6 +285,17 @@ private struct TypeFontPicker: NSViewRepresentable {
                   name.unicodeScalars.filter({ $0.properties.isAlphabetic }).allSatisfy({ font.coveredCharacterSet.contains($0) })
             else { return NSAttributedString() }
             return NSAttributedString(string: name, attributes: [.font: font])
+        }
+    }
+}
+
+private extension TextAlignment {
+    /// Whole phrases, so a translation can word "Align Left" the way its language does.
+    var localizedHelp: String {
+        switch self {
+        case .left: L("Align Left")
+        case .center: L("Align Center")
+        case .right: L("Align Right")
         }
     }
 }

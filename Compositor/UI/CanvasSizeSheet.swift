@@ -1,5 +1,14 @@
 import SwiftUI
 
+/// The fill for the extra canvas. Raw values are stable keys; the picker shows them translated.
+private enum CanvasExtensionChoice: String, CaseIterable, Identifiable {
+    case transparent = "Transparent", foreground = "Foreground", background = "Background"
+    case black = "Black", white = "White", custom = "Custom"
+
+    var id: String { rawValue }
+    var title: String { L(rawValue) }
+}
+
 struct CanvasSizeSheet: View {
     let foreground: PaletteColor
     let background: PaletteColor
@@ -7,9 +16,9 @@ struct CanvasSizeSheet: View {
     let finish: (CanvasSizeOptions?) -> Void
     @State private var draft: CanvasSizeDraft
     @State private var anchor = 4
-    @State private var extensionChoice = "Transparent"
+    @State private var extensionChoice: CanvasExtensionChoice = .transparent
     @State private var customColor = PaletteColor.white
-    private let anchorNames = ["Top left", "Top center", "Top right", "Middle left", "Center", "Middle right", "Bottom left", "Bottom center", "Bottom right"]
+    private let anchorNames = ["Top left", "Top center", "Top right", "Middle left", "Center", "Middle right", "Bottom left", "Bottom center", "Bottom right"].map { L($0) }
 
     init(document: CanvasDocument, session: EditorSession, finish: @escaping (CanvasSizeOptions?) -> Void) {
         self.foreground = session.foregroundColor
@@ -52,12 +61,12 @@ struct CanvasSizeSheet: View {
     private var fill: CanvasExtensionColor? {
         let color: NSColor
         switch extensionChoice {
-        case "Transparent": return nil
-        case "Black": color = .black
-        case "Foreground": color = foreground.nsColor
-        case "White": color = .white
-        case "Background": color = background.nsColor
-        default: color = customColor.nsColor
+        case .transparent: return nil
+        case .black: color = .black
+        case .foreground: color = foreground.nsColor
+        case .white: color = .white
+        case .background: color = background.nsColor
+        case .custom: color = customColor.nsColor
         }
         guard let rgb = color.usingColorSpace(.sRGB) else { return nil }
         return CanvasExtensionColor(red: rgb.redComponent, green: rgb.greenComponent, blue: rgb.blueComponent)
@@ -72,7 +81,7 @@ struct CanvasSizeSheet: View {
                 .font(.callout).foregroundStyle(.secondary)
             Divider()
             Picker("Units", selection: $draft.unit) {
-                ForEach(CanvasUnit.allCases, id: \.self) { Text($0.rawValue).tag($0) }
+                ForEach(CanvasUnit.allCases, id: \.self) { Text($0.displayName).tag($0) }
             }
             HStack {
                 Text("Width").frame(width: 60, alignment: .leading)
@@ -123,12 +132,12 @@ struct CanvasSizeSheet: View {
                 }.padding(.top, 28)
             }
             Picker("Canvas extension", selection: $extensionChoice) {
-                ForEach(["Transparent", "Foreground", "Background", "Black", "White", "Custom"], id: \.self) { Text($0) }
+                ForEach(CanvasExtensionChoice.allCases) { Text($0.title).tag($0) }
             }
-            if extensionChoice == "Custom" {
+            if extensionChoice == .custom {
                 HStack(spacing: 8) {
                     Text("Extension color")
-                    DialogColorSwatch(title: "Extension Color", color: $customColor, session: session)
+                    DialogColorSwatch(title: L("Extension color"), color: $customColor, session: session)
                         .help("Color for the added canvas")
                 }
             }

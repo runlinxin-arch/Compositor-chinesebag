@@ -71,8 +71,9 @@ struct CommandPaletteView: View {
 @MainActor
 final class CommandPaletteController {
     static let shared = CommandPaletteController()
-    /// Left out of the palette: the palette itself and the system menus.
-    static let skipped: Set<String> = ["Search Commands…", "Window", "Help", "Services"]
+    /// Left out of the palette: the palette itself. The Window, Help and Services menus are
+    /// skipped by their menu objects, so a translated menu title can't bring them back.
+    static var skipped: Set<String> { [L("Search Commands…")] }
 
     private(set) var panel: PalettePanel?
     private weak var window: NSWindow?

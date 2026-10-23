@@ -20,15 +20,15 @@ nonisolated enum PSDText {
         var anchorIsFrame: Bool
     }
 
-    static let rasterizedNote = "Editable Photoshop text becomes pixels and can’t be retyped."
-    static let firstStyleNote = "Only the first text style was kept."
-    static let warpNote = "The Photoshop text warp was omitted."
-    static let fauxNote = "Faux bold or faux italic was omitted."
-    static let justifyNote = "Full justification was imported as left alignment."
+    static var rasterizedNote: String { L("Editable Photoshop text becomes pixels and can’t be retyped.") }
+    static var firstStyleNote: String { L("Only the first text style was kept.") }
+    static var warpNote: String { L("The Photoshop text warp was omitted.") }
+    static var fauxNote: String { L("Faux bold or faux italic was omitted.") }
+    static var justifyNote: String { L("Full justification was imported as left alignment.") }
 
     static func missingFontNote(_ name: String) -> String? {
         guard NSFont(name: name, size: 12) == nil else { return nil }
-        return "The font “\(name)” isn’t installed, so the text was drawn with the system font."
+        return L("The font “%@” isn’t installed, so the text was drawn with the system font.", name)
     }
 
     /// An artboard folder's rectangle on the canvas, in pixels (its `artb` descriptor, or the older `artd`/`abdd`);

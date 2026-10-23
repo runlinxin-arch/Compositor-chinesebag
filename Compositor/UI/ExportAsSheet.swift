@@ -113,8 +113,8 @@ struct ExportAsSheet: View {
                         isGIFPreviewPlaying.toggle()
                     } label: { Image(systemName: isGIFPreviewPlaying ? "pause.fill" : "play.fill").foregroundStyle(.white) }
                         .disabled(!isReady)
-                        .help(isGIFPreviewPlaying ? "Pause the animation preview." : "Play the animation preview.")
-                        .accessibilityLabel(isGIFPreviewPlaying ? "Pause animation preview" : "Play animation preview")
+                        .help(L(isGIFPreviewPlaying ? "Pause the animation preview." : "Play the animation preview."))
+                        .accessibilityLabel(L(isGIFPreviewPlaying ? "Pause animation preview" : "Play animation preview"))
                 }
                 Button("Fit") { zoom = nil }.disabled(zoom == nil)
                     .help("Show the whole image (⌘0)")
@@ -144,7 +144,7 @@ struct ExportAsSheet: View {
                     // which takes the chosen one's name.
                     HStack(spacing: 12) {
                         Picker("Format", selection: $format) {
-                            ForEach([ExportFormat.jpeg, .png], id: \.self) { Text($0.rawValue).tag($0) }
+                            ForEach([ExportFormat.jpeg, .png], id: \.self) { Text($0.displayName).tag($0) }
                         }
                         .pickerStyle(.segmented).labelsHidden().fixedSize()
                         moreFormats
@@ -238,16 +238,16 @@ struct ExportAsSheet: View {
                 }
             }
             HStack(spacing: 12) {
-                Text(format == .channelPack ? "Each channel from a layer, read as grayscale · PNG"
-                     : format == .gif ? "Up to 256 colors · sRGB" : format == .exr ? "Brighter than white kept · Transparency kept"
-                     : takesCMYK && cmyk ? "CMYK – \(profile?.name ?? "No profile")"
-                     : format == .png || format == .tiff ? "Transparency kept · sRGB" : "sRGB")
+                Text(format == .channelPack ? L("Each channel from a layer, read as grayscale · PNG")
+                     : format == .gif ? L("Up to 256 colors · sRGB") : format == .exr ? L("Brighter than white kept · Transparency kept")
+                     : takesCMYK && cmyk ? L("CMYK – %@", profile?.name ?? L("No profile"))
+                     : format == .png || format == .tiff ? L("Transparency kept · sRGB") : L("sRGB"))
                     .foregroundStyle(.secondary)
                 Spacer()
                 if isReady, let result {
                     Text(ByteCountFormatter.string(fromByteCount: Int64(result.data.count), countStyle: .file)).monospacedDigit()
                 } else if error == nil {
-                    Text(format == .gif ? gifProgress.map { "Encoding frame \(min($0.completed + 1, $0.total)) of \($0.total)…" } ?? "Updating…" : "Updating…")
+                    Text(format == .gif ? gifProgress.map { String(localized: "Encoding frame \(min($0.completed + 1, $0.total)) of \($0.total)…") } ?? L("Updating…") : L("Updating…"))
                         .foregroundStyle(.secondary).monospacedDigit()
                 }
                 Button("Cancel") { DialogColorSwatch.closePicker(session); finish(nil) }.configuredNativeShortcut(.escape)
@@ -367,11 +367,11 @@ struct ExportAsSheet: View {
         return snapshot.gifExportLayers.contains { (snapshot.animations[$0.id]?.frames.count ?? 0) > 1 }
     }
     private var gifSummary: String {
-        guard !(snapshot?.gifExportLayers ?? []).isEmpty else { return "1 frame · Still canvas" }
+        guard !(snapshot?.gifExportLayers ?? []).isEmpty else { return L("1 frame · Still canvas") }
         guard let schedule = gifSchedule else { return "—" }
-        let count = "\(schedule.frames.count) \(schedule.frames.count == 1 ? "frame" : "frames")"
-        let durations = schedule.durations
-        return "\(count) · \(durations.reduce(0, +).formatted(.number.precision(.fractionLength(0...2)))) s"
+        let count = schedule.frames.count == 1 ? L("1 frame") : L("%lld frames", schedule.frames.count)
+        let seconds = schedule.durations.reduce(0, +).formatted(.number.precision(.fractionLength(0...2)))
+        return L("%1$@ · %2$@ s", count, seconds)
     }
 
     /// RGB or CMYK: one small menu, as few need CMYK. The profile CMYK goes through is View › CMYK › Profile's, named in
@@ -388,7 +388,7 @@ struct ExportAsSheet: View {
     private func loadProfile() {
         let panel = NSOpenPanel()
         panel.allowedContentTypes = [UTType(filenameExtension: "icc") ?? .data, UTType(filenameExtension: "icm") ?? .data]
-        panel.message = "Choose a CMYK ICC profile, such as the one your printer gave you"
+        panel.message = L("Choose a CMYK ICC profile, such as the one your printer gave you")
         guard panel.runModal() == .OK, let url = panel.url else { return }
         do { session.proofProfile = try CMYK.load(url) }
         catch { self.error = error.localizedDescription }
@@ -399,14 +399,15 @@ struct ExportAsSheet: View {
     @ViewBuilder private var moreFormats: some View {
         let others = formats.filter { $0 != .png && $0 != .jpeg }
         let chosen = others.contains(format)
-        let menu = Menu(chosen ? format.rawValue : "More") {
+        let menu = Menu(chosen ? format.displayName : L("More")) {
             Picker("More formats", selection: $format) {
-                ForEach(others, id: \.self) { Text($0.rawValue).tag($0) }
+                ForEach(others, id: \.self) { Text($0.displayName).tag($0) }
             }
             .pickerStyle(.inline).labelsHidden()
         }
         .menuStyle(.button).fixedSize()
-        .help("Other formats: TIFF, PDF and GIF\(others.contains(.exr) ? ", EXR to keep light brighter than white" : ""), and Channel Pack for game textures")
+        .help(L("Other formats: TIFF, PDF and GIF%@, and Channel Pack for game textures",
+                others.contains(.exr) ? L(", EXR to keep light brighter than white") : ""))
         if chosen { menu.buttonStyle(.borderedProminent) } else { menu.buttonStyle(.bordered) }
     }
 
@@ -422,7 +423,7 @@ struct ExportAsSheet: View {
             }
         }
         .labelsHidden().frame(width: 260)
-        .help("What fills the \(channel.rawValue.lowercased()) channel: a layer or group read as grayscale, or solid black or white")
+        .help(L("What fills the %@ channel: a layer or group read as grayscale, or solid black or white", channel.rawValue.lowercased()))
     }
 
     private func sizeField(_ value: Int, set: @escaping (Int) -> Void) -> some View {

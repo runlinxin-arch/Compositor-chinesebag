@@ -7,6 +7,8 @@ struct CommandPaletteEntry: Identifiable {
     let id: String
     /// Its full path, as the palette shows it and searches it: "Filter › Gaussian Blur…".
     let title: String
+    /// Other names the same command answers to, such as its English path under a translated UI.
+    let aliases: [String]
     /// Its current key, "⌥⌘P", or nil.
     let shortcut: String?
     /// False when its menu item is disabled right now: listed, greyed, and never run.
@@ -16,10 +18,11 @@ struct CommandPaletteEntry: Identifiable {
     let isOn: Bool
     let perform: @MainActor () -> Void
 
-    init(id: String, title: String? = nil, shortcut: String?, isEnabled: Bool, isOn: Bool = false,
+    init(id: String, title: String? = nil, aliases: [String] = [], shortcut: String?, isEnabled: Bool, isOn: Bool = false,
          perform: @escaping @MainActor () -> Void) {
         self.id = id
         self.title = title ?? id
+        self.aliases = aliases
         self.shortcut = shortcut
         self.isEnabled = isEnabled
         self.isOn = isOn
@@ -88,7 +91,8 @@ enum CommandPaletteSearch {
     /// order, enabled first.
     static func rank(_ entries: [CommandPaletteEntry], query: String) -> [CommandPaletteEntry] {
         let scored = entries.enumerated().compactMap { index, entry in
-            score(query, in: entry.title).map { (entry, $0, index) }
+            let best = ([entry.title] + entry.aliases).compactMap { score(query, in: $0) }.max()
+            return best.map { (entry, $0, index) }
         }
         return scored.sorted { a, b in
             if a.0.isEnabled != b.0.isEnabled { return a.0.isEnabled }
@@ -121,6 +125,7 @@ enum CommandPaletteMenu {
             guard !item.isSeparatorItem, !item.isHidden, !skipping.contains(item.title), !item.title.isEmpty else { continue }
             if let submenu = item.submenu {
                 if path.isEmpty, index == 0 { continue } // The app menu: About, Hide, Quit.
+                if path.isEmpty, isSystemMenu(item) { continue }
                 result += collect(submenu, root: root, path: path + [item.title], skipping: skipping, seen: &seen)
                 continue
             }
@@ -133,6 +138,7 @@ enum CommandPaletteMenu {
             seen[title] = count + 1
             result.append(CommandPaletteEntry(
                 id: count == 0 ? title : "\(title) (\(count + 1))", title: title,
+                aliases: [LocalizationAliases.englishPath(for: title)].compactMap { $0 },
                 shortcut: shortcut(of: item), isEnabled: item.isEnabled, isOn: item.state == .on,
                 // Found again by its path when run, so a menu SwiftUI has rebuilt since the palette opened still works.
                 perform: { [weak root] in
@@ -141,6 +147,14 @@ enum CommandPaletteMenu {
                 }))
         }
         return result
+    }
+
+    /// The Window, Help and Services menus, matched by menu object rather than by title, which
+    /// changes with the language.
+    private static func isSystemMenu(_ item: NSMenuItem) -> Bool {
+        guard let submenu = item.submenu else { return false }
+        let app = NSApplication.shared
+        return submenu === app.windowsMenu || submenu === app.helpMenu || submenu === app.servicesMenu
     }
 
     /// The menu holding the item at `titles` (menu titles, then the item's), and its position there; `occurrence`
@@ -175,11 +189,13 @@ extension CommandPaletteEntry {
     static func layerCommands(for session: EditorSession) -> [CommandPaletteEntry] {
         let canAdd = session.canEditMask && session.activeLayer?.mask == nil
         let selected = session.selection != nil
+        let revealTitle = selected ? "Layer › Add Layer Mask from Selection" : "Layer › Add Layer Mask"
+        let hideTitle = selected ? "Layer › Add Layer Mask Hiding Selection" : "Layer › Add Layer Mask (Hide All)"
         return [
-            CommandPaletteEntry(id: selected ? "Layer › Add Layer Mask from Selection" : "Layer › Add Layer Mask",
+            CommandPaletteEntry(id: revealTitle, title: L(revealTitle), aliases: [revealTitle],
                                 shortcut: nil, isEnabled: canAdd,
                                 perform: { [weak session] in session?.addMask(revealing: true) }),
-            CommandPaletteEntry(id: selected ? "Layer › Add Layer Mask Hiding Selection" : "Layer › Add Layer Mask (Hide All)",
+            CommandPaletteEntry(id: hideTitle, title: L(hideTitle), aliases: [hideTitle],
                                 shortcut: nil, isEnabled: canAdd,
                                 perform: { [weak session] in session?.addMask(revealing: false) }),
         ]
@@ -216,7 +232,8 @@ extension CommandPaletteEntry {
             ("Zoom", "Z", .zoom, nil),
         ]
         return tools.map { name, key, tool, setup in
-            CommandPaletteEntry(id: "Tool › \(name)", shortcut: key, isEnabled: session.document != nil,
+            CommandPaletteEntry(id: "Tool › \(name)", title: "Tool › " + L(name), aliases: ["Tool › \(name)"],
+                                shortcut: key, isEnabled: session.document != nil,
                                 perform: { [weak session] in
                                     guard let session else { return }
                                     session.selectTool(tool)

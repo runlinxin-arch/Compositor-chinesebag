@@ -5,6 +5,8 @@ nonisolated enum CanvasUnit: String, CaseIterable, Sendable {
     case pixels = "Pixels", percent = "Percent", inches = "Inches", centimeters = "Centimeters"
 }
 
+extension CanvasUnit: LocalizedDisplayName {}
+
 nonisolated struct CanvasSizeDraft {
     let originalWidth: Int
     let originalHeight: Int

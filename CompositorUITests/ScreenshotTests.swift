@@ -10,7 +10,8 @@ final class ScreenshotTests: XCTestCase {
     func testMainScreens() throws {
         let app = XCUIApplication()
         // A fresh window at its default size, and no update check.
-        app.launchArguments = ["-ApplePersistenceIgnoreState", "YES", "-SUEnableAutomaticChecks", "NO"]
+        app.launchArguments = ["-ApplePersistenceIgnoreState", "YES", "-SUEnableAutomaticChecks", "NO",
+                               "-AppleLanguages", "(en)", "-AppleLocale", "en_US"]
         app.launch()
         let window = app.windows.firstMatch
         XCTAssertTrue(window.waitForExistence(timeout: 10), "the editor window")

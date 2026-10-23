@@ -30,7 +30,7 @@ final class ProjectWorkspace {
             && s.gradientEdit == nil && s.pixelMove == nil && s.colorPicker == nil
     }
     init() {
-        let first = ProjectTab(name: "Untitled")
+        let first = ProjectTab(name: L("Untitled"))
         defer { attach(first) }
         first.session.skipsInitialClipboardCanvasSize = true
         tabs = [first]; selectedID = first.id
@@ -40,8 +40,9 @@ final class ProjectWorkspace {
     /// number them. Counting up for ever, closing the last tab made Untitled 2, then 3, and on.
     private var freeUntitledName: String {
         let taken = Set(tabs.map(\.title))
-        guard taken.contains("Untitled") else { return "Untitled" }
-        return (2...).lazy.map { "Untitled \($0)" }.first { !taken.contains($0) }!
+        let base = L("Untitled")
+        guard taken.contains(base) else { return base }
+        return (2...).lazy.map { String(localized: "Untitled \($0)") }.first { !taken.contains($0) }!
     }
     /// Whether a tab can close: not the only one while it's empty, the blank start it would only be replaced with.
     func canClose(_ tab: ProjectTab) -> Bool {
@@ -263,9 +264,9 @@ final class ProjectWorkspace {
         }
         let used = target.session.document?.layers.reduce(0) { $0 + ($1.asset.map { $0.image.width * $0.image.height } ?? 0) } ?? 0
         let added = copied.reduce(0) { $0 + ($1.asset.map { $0.image.width * $0.image.height } ?? 0) }
-        guard used + added <= DocumentLimits.documentPixelBudget else { target.session.importError = "The copied layers exceed this project’s \(DocumentLimits.documentBudgetMegapixels)-megapixel limit."; return }
+        guard used + added <= DocumentLimits.documentPixelBudget else { target.session.importError = String(localized: "The copied layers exceed this project’s \(DocumentLimits.documentBudgetMegapixels)-megapixel limit."); return }
         guard target.session.canRetainGIFSources(in: (target.session.document?.layers ?? []) + copied) else {
-            target.session.importError = "The copied GIFs exceed this project’s animation memory limit."
+            target.session.importError = L("The copied GIFs exceed this project’s animation memory limit.")
             return
         }
         isManaging = true
